@@ -28,7 +28,7 @@
  * value to immediately stop iteration and possibly signal an error back to
  * the caller.
  */
-typedef int (iterate_extent_inodes_t)(u64 inum, u64 offset, u64 num_bytes,
+typedef int (iterate_extent_inodes_t)(u64 inum, u64 offset, u64 num_bytes, int extent_type,
 				      u64 root, void *ctx);
 
 /*
