@@ -1297,6 +1297,9 @@ struct backref_ctx {
 	u64 backref_owner;
 	/* The offset of the data backref for the current extent. */
 	u64 backref_offset;
+
+	/* used for extent iteration to check if the type is matched */
+	int extent_type;
 };
 
 static int __clone_root_cmp_bsearch(const void *key, const void *elt)
@@ -1327,8 +1330,8 @@ static int __clone_root_cmp_sort(const void *e1, const void *e2)
  * Called for every backref that is found for the current extent.
  * Results are collected in sctx->clone_roots->ino/offset.
  */
-static int iterate_backrefs(u64 ino, u64 offset, u64 num_bytes, u64 root_id,
-			    void *ctx_)
+static int iterate_backrefs(u64 ino, u64 offset, u64 num_bytes, int extent_type,
+			    u64 root_id, void *ctx_)
 {
 	struct backref_ctx *bctx = ctx_;
 	struct clone_root *clone_root;
@@ -1339,6 +1342,10 @@ static int iterate_backrefs(u64 ino, u64 offset, u64 num_bytes, u64 root_id,
 			     sizeof(struct clone_root),
 			     __clone_root_cmp_bsearch);
 	if (!clone_root)
+		return 0;
+
+	/* Type is not matched */
+	if (extent_type != bctx->extent_type)
 		return 0;
 
 	/* This is our own reference, bail out as we can't clone from it. */
@@ -1599,6 +1606,7 @@ static int find_extent_clone(struct send_ctx *sctx,
 	extent_type = btrfs_file_extent_type(eb, fi);
 	if (extent_type == BTRFS_FILE_EXTENT_INLINE)
 		return -ENOENT;
+	backref_ctx.extent_type = extent_type;
 
 	disk_byte = btrfs_file_extent_disk_bytenr(eb, fi);
 	if (disk_byte == 0)

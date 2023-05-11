@@ -374,7 +374,7 @@ nomem:
 	return ERR_PTR(-ENOMEM);
 }
 
-static int scrub_print_warning_inode(u64 inum, u64 offset, u64 num_bytes,
+static int scrub_print_warning_inode(u64 inum, u64 offset, u64 num_bytes, int extent_type,
 				     u64 root, void *warn_ctx)
 {
 	u32 nlink;
